@@ -54,7 +54,17 @@ import feedparser
 from urllib.parse import quote
 from google import genai
 
-MODEL = "gemini-flash-latest"
+def pick_model(client):
+    names = []
+    for m in client.models.list():
+        acts = getattr(m, "supported_actions", None) or []
+        if "generateContent" in acts:
+            names.append(m.name.replace("models/", ""))
+    flash = sorted(n for n in names if "flash" in n
+                   and not any(x in n for x in ["image", "tts", "live", "exp", "preview", "audio"]))
+    if "gemini-2.5-flash" in flash:
+        return "gemini-2.5-flash"
+    return (flash or names)[-1]
 
 st.divider()
 st.subheader("Aaj ki khabron ka khulasa 📰")
