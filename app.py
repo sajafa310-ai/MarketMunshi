@@ -49,3 +49,49 @@ else:
 
 st.dataframe(df)
 st.caption("Backtest ka khulasa: crypto mein ishara, commodity mein kamzor ishara, forex mein koi edge nahi. Rule abhi sirf candidate hai.")
+
+import feedparser
+from urllib.parse import quote
+from google import genai
+
+MODEL = "gemini-flash-latest"
+
+st.divider()
+st.subheader("Aaj ki khabron ka khulasa 📰")
+
+TOPICS = {
+    "Crypto": "bitcoin OR crypto market",
+    "Gold aur Oil": "gold price OR oil price",
+    "Forex": "forex dollar market",
+}
+
+@st.cache_data(ttl=3600)
+def get_news(q):
+    url = "https://news.google.com/rss/search?q=" + quote(q) + "&hl=en-US&gl=US&ceid=US:en"
+    feed = feedparser.parse(url)
+    return [e.title for e in feed.entries[:8]]
+
+@st.cache_data(ttl=3600)
+def make_summary():
+    lines = []
+    for name, q in TOPICS.items():
+        lines.append(name + ":")
+        for t in get_news(q):
+            lines.append("- " + t)
+    prompt = (
+        "Neeche market ki khabron ki headlines hain. "
+        "Roman Urdu mein aasan alfaz mein khulasa likho: har topic ke liye 2-3 chhote nuqte. "
+        "Koi trade ki salah ya qeemat ki peshgoi mat karna. "
+        "Sirf headlines mein jo hai wo likho.\n\n" + "\n".join(lines)
+    )
+    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+    resp = client.models.generate_content(model=MODEL, contents=prompt)
+    return resp.text
+
+if st.button("News summary banao"):
+    try:
+        st.write(make_summary())
+        st.caption("AI ka khulasa headlines par mabni hai, ghalat bhi ho sakta hai. Ye financial advice nahi.")
+    except Exception as e:
+        st.error("Summary nahi ban saki. Error ki pehli line mujhe bata dein.")
+        st.code(str(e)[:200])
