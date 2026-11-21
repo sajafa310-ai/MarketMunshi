@@ -95,7 +95,7 @@ def make_summary():
         "Sirf headlines mein jo hai wo likho.\n\n" + "\n".join(lines)
     )
     client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
-    resp = client.models.generate_content(model=MODEL, contents=prompt)
+        resp = client.models.generate_content(model=pick_model(client), contents=prompt)
     return resp.text
 
 if st.button("News summary banao"):
