@@ -60,12 +60,11 @@ def pick_model(client):
         acts = getattr(m, "supported_actions", None) or []
         if "generateContent" in acts:
             names.append(m.name.replace("models/", ""))
-    flash = sorted(n for n in names if "flash" in n
-                   and not any(x in n for x in ["image", "tts", "live", "exp", "preview", "audio"]))
-    if "gemini-2.5-flash" in flash:
-        return "gemini-2.5-flash"
+    if "gemini-3.8-flash" in names:
+        return "gemini-3.8-flash"
+    flash = sorted(n for n in names if "flash" in n and "lite" not in n
+                   and not any(x in n for x in ["image", "tts", "live", "exp", "audio", "2.0", "2.5"]))
     return (flash or names)[-1]
-
 st.divider()
 st.subheader("Aaj ki khabron ka khulasa 📰")
 
